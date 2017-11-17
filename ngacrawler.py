@@ -6,10 +6,11 @@ import mongo_cache
 import threading
 import multiprocessing
 import urllib2, os
+import re
 
 SLEEP_TIME = 1
 CRAWL_COUNT = 1000
-MAX_PROCESS_COUNT = 10
+MAX_PROCESS_COUNT = 5
 SIGN_INFO_FILE = 'signinfo2.txt'
 AVATAR_FILE = 'avatar.txt'
 LOG_FILE = 'log.txt'
@@ -37,6 +38,7 @@ def f_ngacrawler(uid):
 			username=get_useruid(html)
 			if not username:
 				break
+			username = 'UID'+username
 				
 			#find avatar
 			avatar_str = get_avatar_str(html)
@@ -52,12 +54,12 @@ def f_ngacrawler(uid):
 			else:
 				break
 				
-			if f_sign_have_image_src(sign_str):
-				img_urls = parse_imgsrc(sign_str)
-				for img_url in img_urls:
-					if img_url:
-						favatar.write(img_url + '\n')
-						download_sign_img(img_url, username)
+			img_urls = parse_imgsrc(sign_str)
+			for img_url in img_urls:
+				if img_url:
+					favatar.write(img_url + '\n')
+					print 'Downloading:',img_url
+					download_sign_img(img_url, username)
 
 			#time.sleep(0.1)
 			try:
@@ -79,7 +81,7 @@ def f_ngacrawler(uid):
 	favatar.close()
 	
 def parse_imgsrc(sign_str):
-	imgmatch=re.compile(r'(http://[^,"]*?\.png|http://[^,"]*?\.gif|http://[^,"]*?\.bmp|http://[^,"]*?\.jpg)', re.IGNORECASE)
+	imgmatch=re.compile(r'(http://[^,"\[\]]*?\.png|http://[^,"\[\]]*?\.gif|http://[^,"\[\]]*?\.bmp|http://[^,"\[\]]*?\.jpg)', re.IGNORECASE)
 	imgurls=imgmatch.findall(sign_str)
 	return imgurls
 
@@ -142,13 +144,6 @@ def download_avatar_img(img_url, username):
 		temp_file = open(img_file_name, 'w')
 		temp_file.write(binary_data)
 		temp_file.close()
-
-def f_sign_have_image_src(sign_str):
-	src_index = sign_str.find('src=\'')
-	if src_index == -1:
-		return False
-	else:
-		return True
 
 def get_useruid(html):
 	username_beginindex=html.find('uid')
