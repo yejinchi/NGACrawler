@@ -53,10 +53,11 @@ def f_ngacrawler(uid):
 				break
 				
 			if f_sign_have_image_src(sign_str):
-				img_url = parse_imgsrc(sign_str)
-				if img_url:
-					favatar.write(img_url + '\n')
-					download_sign_img(img_url, username)
+				img_urls = parse_imgsrc(sign_str)
+				for img_url in img_urls:
+					if img_url:
+						favatar.write(img_url + '\n')
+						download_sign_img(img_url, username)
 
 			#time.sleep(0.1)
 			try:
@@ -78,18 +79,9 @@ def f_ngacrawler(uid):
 	favatar.close()
 	
 def parse_imgsrc(sign_str):
-	img_url = ''
-	img_beginindex = sign_str.find('src=\'')
-	if not img_beginindex == -1:
-		img_endindex = sign_str.find('\'', img_beginindex + 5)
-		if not img_endindex == -1:
-			img_url = sign_str[img_beginindex + 5:img_endindex]
-			print 'sign image url:', img_url
-			return img_url
-		else:
-			return None
-	else:
-		return None
+	imgmatch=re.compile(r'(http://[^,"]*?\.png|http://[^,"]*?\.gif|http://[^,"]*?\.bmp|http://[^,"]*?\.jpg)', re.IGNORECASE)
+	imgurls=imgmatch.findall(sign_str)
+	return imgurls
 
 def download_sign_img(img_url, username):
 	global f_log
